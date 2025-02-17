@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ article.title }} - Deep Dive Summary</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <header class="nav-bar">
+    <div class="logo">Blogify</div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="{{ url_for('home') }}">Home</a></li>
+        <li><a href="#">Explore</a></li>
+        <li><a href="#">Summaries</a></li>
+        <li><a href="#">Profile</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Article Deep Dive Summary Section -->
+  <section class="article-summary">
+    <div class="summary-card">
+      <h1>{{ article.title }}</h1>
+      <div class="article-meta">
+        <span class="news-category">{{ article.category }}</span>
+        <span class="news-date">{{ article.published_at.strftime('%Y-%m-%d %H:%M') }}</span>
+      </div>
+      <!-- Deep Dive Summary -->
+      <div class="deep-dive-summary">
+        {% for section in detailed_summary %}
+          <div class="summary-section">
+            <h2>{{ section.title }}</h2>
+            <p>{{ section.content }}</p>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="author-info">
+        <img src="https://avatars.githubusercontent.com/u/119046561?v=4" alt="Author Image" class="author-image">
+        <span>By Author</span>
+      </div>
+    </div>
+  </section>
+</body>
+</html> 

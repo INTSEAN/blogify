@@ -1,0 +1,8 @@
+Metadata-Version: 2.2
+Name: blogify
+Version: 0.1
+Requires-Dist: openai
+Requires-Dist: python-dotenv
+Requires-Dist: requests
+Requires-Dist: sqlalchemy
+Dynamic: requires-dist

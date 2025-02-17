@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Revolutionizing News Through AI">
+  <title>Blogify - AI News Live Blog</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=San+Francisco+Display:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <!-- Tutorial Banner -->
+  <div id="tutorial-banner" class="tutorial-banner" onclick="openTutorial()">
+    Try Ai Summary!
+  </div>
+
+  <!-- Top Navigation -->
+  <header class="nav-bar">
+    <div class="logo">Blogify</div>
+    <nav>
+      <ul class="nav-links">
+        <li tabindex="0">Home</li>
+        <li tabindex="0">Explore</li>
+        <li tabindex="0">Summaries</li>
+        <li tabindex="0">Profile</li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Trending Articles Section -->
+  <section class="trending-section">
+    <div class="trending-header">
+      <h2>Trending Articles</h2>
+      <a href="#" class="see-all">See All Trending</a>
+    </div>
+    <div class="trending-grid">
+      {% for trending in trending_articles[:2] %}
+      <article class="trending-card">
+        <div class="trending-thumbnail">
+          <div class="trending-icon" aria-label="Trending">
+            <i class="fa fa-fire" style="color: blue;"></i>
+          </div>
+        </div>
+        <div class="trending-content">
+          <h3 class="trending-title">
+            <a href="{{ url_for('article_detail', article_id=trending.id) }}"
+               data-article-id="{{ trending.id }}">
+              {{ trending.title }}
+            </a>
+          </h3>
+
+          <div class="trending-meta">
+            <span class="trending-category">{{ trending.category }}</span>
+            <span class="trending-date">{{ trending.published_at.strftime('%b %d, %Y') }}</span>
+          </div>
+          <div class="viewer-count">
+            <i class="fa fa-eye"></i> {{ trending.viewer_count }}
+          </div>
+          <button class="summarize-action summarize-trending" onclick="summarizeTrending('{{ trending.id }}')">Summarize This</button>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Revolutionizing News Through AI</h1>
+        <p>Instantly summarize and personalize your news experience.</p>
+        <button class="ai-summarize-btn" onclick="startSummarization()">AI Summarize</button>
+      </div>
+      <div class="hero-illustration">
+        <!-- A minimalistic illustration hinting at AI; replace with your custom icon or SVG -->
+        <img src="data:image/jpeg;base64,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" alt="AI Brain Illustration">
+      </div>
+    </section>
+
+  <!-- AI Summarizer Section -->
+  <section class="summarizer">
+    <div class="summarizer-input" style="display:none;">
+      <input type="text" id="summarizer-query" placeholder="Enter article URL or keywords..." />
+      <button class="summarize-action" onclick="startSummarization()">Summarize</button>
+    </div>
+    <div class="summarizer-feedback" id="feedback" style="display: none;">
+      <div class="progress-indicator"></div>
+    </div>
+    <div class="summarizer-result" id="result" style="display: none;">
+      <h2>Summary</h2>
+      <p id="summary-result"></p>
+      <div class="result-actions">
+        <button class="action-btn" title="Share" onclick="shareSummary()"><i class="fa fa-share"></i></button>
+        <button class="action-btn" title="Save" onclick="saveSummary()"><i class="fa fa-bookmark"></i></button>
+        <button class="action-btn" title="Expand" onclick="expandSummary()"><i class="fa fa-expand"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- News Feed Section -->
+  <section class="news-feed">
+    <div class="filter-bar">
+      <button class="filter pill active" data-filter="all">All AI</button>
+      <button class="filter pill" data-filter="business">Business AI</button>
+      <button class="filter pill" data-filter="technology">Technology AI</button>
+      <button class="filter pill" data-filter="research">Research AI</button>
+      <button class="filter pill" data-filter="health">Health AI</button>
+      <button class="filter pill" data-filter="science">Music AI</button>
+      <button class="filter pill" data-filter="sports">Sports AI</button>
+      <button class="filter pill" data-filter="politics">Politics AI</button>
+      <button class="filter pill" data-filter="economy">Economy AI</button>
+    </div>
+    <div class="articles-grid">
+      {% for article in articles %}
+      <article class="news-card">
+        <div class="select-summarize-container">
+          <input type="checkbox" class="select-article" id="select-article-{{ article.id }}" data-article-id="{{ article.id }}">
+          <label for="select-article-{{ article.id }}" class="select-summarize-btn">Select to Summarize</label>
+        </div>
+        
+        <h3 class="news-title">
+          <a href="{{ article.url }}" data-article-id="{{ article.id }}" target="_blank" rel="noopener noreferrer">
+            {{ article.title }}
+          </a>
+        </h3>
+        
+        
+        <div class="viewer-count">
+          <i class="fa fa-eye"></i> {{ article.viewer_count }} Views
+        </div>
+        <p class="news-snippet">{{ article.summary }}</p>
+        <div class="news-meta">
+          <span class="news-category">{{ article.category }}</span>
+          <span class="news-date">{{ article.published_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+        <div class="author-info">
+          <img src="https://avatars.githubusercontent.com/u/119046561?v=4" alt="Author Image" class="author-image">
+          <span>By Author</span>
+        </div>
+        <button class="deep-dive-btn" onclick="window.location.href='{{ url_for('article_detail', article_id=article.id) }}';">Get Deep Dive AI Summary</button>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Modal for Expanded Summary -->
+  <div id="summary-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>Full Summary</h2>
+      <p id="modal-summary"></p>
+    </div>
+  </div>
+
+  <!-- Tutorial Overlay for Tutorial (will create the focus effect) -->
+  <div id="spotlight" class="spotlight" style="display:none;"></div>
+
+  <div id="tutorial-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeTutorial()">&times;</span>
+      <div id="tutorial-step-content"></div>
+      <button id="tutorial-next-btn" onclick="nextTutorial()">Next</button>
+    </div>
+  </div>
+
+  <div class="refresh-container">
+    <button id="refresh-articles-btn">Refresh Articles</button>
+    <div id="refresh-info">
+      <p>Last refreshed: <span id="last-refresh-time">Never</span></p>
+      <p>Next refresh in: <span id="next-refresh-timer">60s</span></p>
+    </div>
+  </div>
+
+  <script>
+    function startSummarization() {
+      const selectedArticles = [];
+      document.querySelectorAll('.select-article:checked').forEach(checkbox => {
+        selectedArticles.push(checkbox.getAttribute('data-article-id'));
+      });
+
+      if (selectedArticles.length === 0) {
+        alert('Please select at least one article to summarize.');
+        return;
+      }
+
+      document.getElementById('feedback').style.display = 'block';
+
+      fetch('/ai-summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ article_ids: selectedArticles })
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('summary-result').innerText = data.summary;
+        document.getElementById('result').style.display = 'block';
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('feedback').style.display = 'none';
+      });
+    }
+
+    function shareSummary() {
+      const summaryText = document.getElementById('summary-result').innerText;
+      if (!summaryText) {
+        alert('No summary available to share.');
+        return;
+      }
+      if (navigator.share) {
+        navigator.share({
+          title: 'AI Summary',
+          text: summaryText,
+          url: window.location.href
+        }).then(() => {
+          console.log('Summary shared successfully');
+        }).catch((error) => {
+          console.error('Error sharing summary:', error);
+        });
+      } else {
+        copyToClipboard(summaryText);
+        alert('Summary copied to clipboard.');
+      }
+    }
+
+    function copyToClipboard(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+
+    function saveSummary() {
+      const summaryText = document.getElementById('summary-result').innerText;
+      if (!summaryText) {
+        alert('No summary available to save.');
+        return;
+      }
+      let savedSummaries = JSON.parse(localStorage.getItem('savedSummaries')) || [];
+      savedSummaries.push({
+        summary: summaryText,
+        timestamp: new Date().toISOString()
+      });
+      localStorage.setItem('savedSummaries', JSON.stringify(savedSummaries));
+      alert('Summary saved successfully.');
+    }
+
+    function expandSummary() {
+      const summaryText = document.getElementById('summary-result').innerText;
+      if (!summaryText) {
+        alert('No summary available to expand.');
+        return;
+      }
+      document.getElementById('modal-summary').innerText = summaryText;
+      document.getElementById('summary-modal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('summary-modal').style.display = 'none';
+    }
+
+    // Define tutorial steps with a target selector for the spotlight effect.
+    const tutorialSteps = [
+      {
+        title: "Select Articles",
+        content: "Click the checkbox next to any article you wish to include in your summary.",
+        spotlightTarget: ".select-article"  // Highlights the first select checkbox.
+      },
+      {
+        title: "Summarize",
+        content: "Once you have selected articles, click the 'AI Summarize' button to generate the summary.",
+        spotlightTarget: ".ai-summarize-btn"  // Highlights the summarize button.
+      }
+    ];
+    
+    let currentStep = 0;
+
+    // Opens the tutorial modal and activates the spotlight.
+    function openTutorial() {
+      console.log("Tutorial opened");
+      currentStep = 0;
+      showTutorialStep();
+      document.getElementById("tutorial-modal").style.display = "block";
+      document.getElementById("spotlight").style.display = "block";
+    }
+
+    // Updates the tutorial content and spotlight based on the current step.
+    function showTutorialStep() {
+      const step = tutorialSteps[currentStep];
+      document.getElementById("tutorial-step-content").innerHTML =
+        "<h2>" + step.title + "</h2><p>" + step.content + "</p>";
+      if (step.spotlightTarget) {
+        updateSpotlight(step.spotlightTarget);
+      } else {
+        // If no target is defined, remove any computed clip-path.
+        document.getElementById("spotlight").style.clipPath = "none";
+      }
+    }
+
+    // Advances to the next tutorial step.
+    function nextTutorial() {
+      currentStep++;
+      if (currentStep < tutorialSteps.length) {
+        showTutorialStep();
+      } else {
+        closeTutorial();
+      }
+    }
+
+    // Closes the tutorial and removes the spotlight overlay.
+    function closeTutorial() {
+      document.getElementById("tutorial-modal").style.display = "none";
+      document.getElementById("spotlight").style.display = "none";
+    }
+
+    // Computes and sets a clip-path on the spotlight overlay to reveal the target element.
+    function updateSpotlight(targetSelector) {
+      const spotlight = document.getElementById("spotlight");
+      const target = document.querySelector(targetSelector);
+      if (!target || !spotlight) return;
+
+      // Get bounding rectangle of target element relative to viewport.
+      const rect = target.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      // Use the diagonal of the rect as the radius, with an added padding.
+      const radius = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2 + 10;
+
+      // Set the clip-path to make a circular transparent area over the target element.
+      spotlight.style.clipPath = `circle(${radius}px at ${centerX}px ${centerY}px)`;
+    }
+
+    // (Optional) Update spotlight position on window resize.
+    window.addEventListener("resize", function () {
+      if (tutorialSteps[currentStep] && tutorialSteps[currentStep].spotlightTarget) {
+        updateSpotlight(tutorialSteps[currentStep].spotlightTarget);
+      }
+    });
+
+    function triggerDeepDive(articleId) {
+      fetch(`/deep-dive-summary/${articleId}`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('modal-summary').innerText = data.summary;
+          document.getElementById('summary-modal').style.display = 'block';
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+
+    function incrementViewCount(articleId, url) {
+      fetch(`/increment-view/${articleId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(() => {
+        // After incrementing the view count, open the link
+        window.open(url, '_blank');
+      }).catch(error => console.error('Error:', error));
+    }
+    document.querySelectorAll('.news-title a, .trending-title a').forEach(link => {
+  link.addEventListener('click', function() {
+    const articleId = this.dataset.articleId;
+    if (articleId) {
+      const payload = JSON.stringify({});
+      const blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon(`/increment-view/${articleId}`, blob);
+    }
+    // Let the link open normally.
+  });
+});
+
+document.getElementById('refresh-articles-btn').addEventListener('click', refreshArticles);
+
+function refreshArticles() {
+  fetch('/update')
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        const now = new Date();
+        document.getElementById('last-refresh-time').innerText = now.toLocaleTimeString();
+        startRefreshTimer();
+        // Optionally, reload the page or update the articles list dynamically
+        location.reload();
+      }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function startRefreshTimer() {
+  let timeLeft = 60;
+  const timerElement = document.getElementById('next-refresh-timer');
+  const timerInterval = setInterval(() => {
+    timeLeft--;
+    timerElement.innerText = `${timeLeft}s`;
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      timerElement.innerText = 'Ready to refresh';
+    }
+  }, 1000);
+}
+
+// Initialize the timer on page load
+startRefreshTimer();
+
+// Function to fetch new articles and append them if they don't exist already
+function fetchAndAppendArticles() {
+  fetch('/articles-json')
+    .then(response => response.json())
+    .then(data => {
+      const articlesGrid = document.querySelector('.articles-grid');
+      data.forEach(article => {
+        // Check if the article is already rendered
+        if (!document.querySelector(`.news-card[data-article-id="${article.id}"]`)) {
+          const articleElem = document.createElement('article');
+          articleElem.className = 'news-card';
+          articleElem.setAttribute('data-article-id', article.id);
+          articleElem.innerHTML = `
+            <div class="select-summarize-container">
+              <input type="checkbox" class="select-article" id="select-article-${article.id}" data-article-id="${article.id}">
+              <label for="select-article-${article.id}" class="select-summarize-btn">Select to Summarize</label>
+            </div>
+            <h3 class="news-title">
+              <a href="${article.url}" data-article-id="${article.id}" target="_blank" rel="noopener noreferrer">
+                ${article.title}
+              </a>
+            </h3>
+            <div class="viewer-count">
+              <i class="fa fa-eye"></i> ${article.viewer_count} Views
+            </div>
+            <p class="news-snippet">${article.summary}</p>
+            <div class="news-meta">
+              <span class="news-category">${article.category}</span>
+              <span class="news-date">${article.published_at}</span>
+            </div>
+            <div class="author-info">
+              <img src="https://avatars.githubusercontent.com/u/119046561?v=4" alt="Author Image" class="author-image">
+              <span>By Author</span>
+            </div>
+            <button class="deep-dive-btn" onclick="window.location.href='{{ url_for('article_detail', article_id=article.id) }}';">Get Deep Dive AI Summary</button>
+          `;
+          articlesGrid.appendChild(articleElem);
+        }
+      });
+    })
+    .catch(error => console.error('Error fetching articles:', error));
+}
+
+// Call fetchAndAppendArticles every 10 seconds
+setInterval(() => {
+  fetchAndAppendArticles();
+}, 1000);
+
+  </script>
+</body>
+</html>
